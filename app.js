@@ -3,10 +3,28 @@ const cors = require('cors');
 const MongoClient = require('mongodb').MongoClient;
 const URI = 'mongodb://Admin:admin@3.87.77.55/myData?retryWrites=true&w=majority';
 const jwt = require ('jsonwebtoken');
-const PORT = process.env.PORT || 8000;
+const fileUpload = require ('express-fileupload');
+const app = express();
+const path = require('path');
+const util = require('util');
 
-const app = express();app.use(cors());
+const  multipart  =  require('connect-multiparty');
+const  multipartMiddleware  =  multipart({ uploadDir:  './uploads' });
+
+app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({extended: true}));
+app.use(fileUpload());
+app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*"),
+    res.header("Access-Control-Allow-Origin", "GET, HEAD, OPTIONS, POST, PUT"),
+    res.header("Access-Control-Allow-Origin", "Origin, X-Requested-With, Content-Type, Accept, c-client-key, x-client-key, x-client-token, x-client-secret, Authorization"),
+    next()
+});
+
+//const bodyParser = require("body-parser");
+//app.use(bodyParser.json());
+//app.use(bodyParser.urlencoded({extended: true}));
 
 var database
 
@@ -17,6 +35,41 @@ MongoClient.connect(URI,{useNewUrlParser: true, useUnifiedTopology: true}, funct
     }
     database = db.db("myData");
 });
+
+app.post('/upload', multipartMiddleware, (req, res) => {
+    res.json({
+        'message': 'File uploaded succesfully'    
+    });
+});
+
+app.post('/api/upload', async (req, res) => {
+    try {
+        const file = req.files.file;
+        const filename = file.name;
+        const size = file.size;
+        const extension = path.extname(filename);
+        const allowedExtensions = /txt|xml|xlsx|doc|docx/;
+
+        if (!allowedExtensions.toLocaleString(extension)) throw "Unsupported extension!";
+        if (size > 5000000) throw "File must be less than 5MB";
+
+        const md5 = file.md5;
+        const URL = "/uploads/" + md5 + extension;
+
+        await util.promisify(file.mv)('./' + URL);
+
+        res.json({
+            message: "File uploaded succesfully!",
+            url: URL,
+        });
+
+    } catch(err) {
+        console.log(err);
+        res.status(500).json({
+            message: err,
+        })
+    } 
+})
 
 app.get('/', (req, res) => {
     res.send("Root page");
@@ -33,23 +86,21 @@ app.post('/New', (req, res) => {
     const newUser = {
         firstName: req.body.firstName,
         lastName: req.body.lastname,
-        email:req.body.email,
+        email: req.body.email,
         phoneNumber: req.body.phoneNumber,
-        address: req.body.address
     }
 
     database.collection("Person").insert(newUser, function(err){
         if (err) {
             console.log("Error Occurred");
         } else {
-            res.send("User Added Succesully");
+            res.send(newUser);
+            res.send("Data Added Succesully");
         }
     })
 })
 
-app.listen(PORT, () => {
-    console.log("Server is listening on port " + PORT);
-}) 
+module.exports = app;
 
 /* const express = require('express');
 const mongoose = require('mongoose');

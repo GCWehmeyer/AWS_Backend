@@ -1,6 +1,6 @@
 const express = require('express')
 const app = express()
-const port = 3000
+//const port = 3000
 const bodyParser = require("body-parser");
 const multipart = require('connect-multiparty');
 const multipartMiddleware = multipart({
@@ -18,4 +18,4 @@ app.post('/api/upload', multipartMiddleware, (req, res) => {
     });
 });
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`))
+//app.listen(port, () => console.log(`Example app listening on port ${port}!`))
