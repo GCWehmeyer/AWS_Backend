@@ -81,12 +81,19 @@ app.get('/getUsers', (req, res) => {
     });
 })
 
+app.get('/getMetaData', (req, res) => {
+    database.collection("MetaData").find({}).toArray(function(err, result){
+        if(err) throw err;
+        res.send(result);
+    });
+})
+
 app.post('/New', (req, res) => {
     const newUser = {
         firstName: req.body.firstName,
         lastName: req.body.lastname,
         email: req.body.email,
-        phoneNumber: req.body.phoneNumber,
+        phone: req.body.phone,
     }
 
     database.collection("Person").insert(newUser, function(err){
