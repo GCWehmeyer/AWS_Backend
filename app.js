@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const MongoClient = require('mongodb').MongoClient;
 const URI = 'mongodb://Admin:admin@3.87.77.55/myData?retryWrites=true&w=majority';
-const jwt = require ('jsonwebtoken');
 const fileUpload = require ('express-fileupload');
 const app = express();
 const path = require('path');
